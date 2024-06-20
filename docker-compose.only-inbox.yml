@@ -1,0 +1,124 @@
+version: "3.7"
+services:
+    gateway:
+        build:
+            context: gateway/docker
+            dockerfile: local/nginx/Dockerfile
+        ports:
+            - "8083:8083" # freescout
+
+    freescout:
+        build:
+            context: freescout/docker
+            dockerfile: local/nginx/Dockerfile
+        volumes:
+            - ./freescout:/app
+
+    freescout-php-fpm:
+        build:
+            context: freescout/docker
+            dockerfile: local/php-fpm/Dockerfile
+        environment: &freescout-env
+            APP_URL: http://localhost:8083
+            APP_KEY: base64:pEhdK9HMJmJgEo+VXJyBzw9TWogW7aQP/2CSuyV/+s8=
+            DB_CONNECTION: pgsql
+            DB_HOST: freescout-postgres
+            DB_PORT: 5432
+            DB_DATABASE: freescout
+            DB_USERNAME: freescout
+            DB_PASSWORD: password
+            APIWEBHOOKS_CORS_HOSTS: "*"
+            APP_FETCH_SCHEDULE: 1
+            SENTRY_LARAVEL_DSN:
+            LOG_LEVEL: debug
+            APP_DEBUG: 1
+            APP_ENV: local
+            APP_DISABLE_UPDATING: true
+            REDIS_HOST: redis
+            SESSION_DRIVER: redis
+            CACHE_DRIVER: redis
+            QUEUE_CONNECTION: redis
+            AWS_ACCESS_KEY_ID: app
+            AWS_SECRET_ACCESS_KEY: password
+            AWS_DEFAULT_REGION: us-east-1
+            AWS_BUCKET: local
+            AWS_ENDPOINT: http://minio:9000
+            AWS_USE_PATH_STYLE_ENDPOINT: "true"
+        volumes:
+            - ./freescout:/app
+
+    freescout-php-cli:
+        build:
+            context: freescout/docker
+            dockerfile: local/php-cli/Dockerfile
+        environment:
+            <<: *freescout-env
+        volumes:
+            - ./freescout:/app
+
+    freescout-php-queue:
+        build:
+            context: freescout/docker
+            dockerfile: local/php-cli/Dockerfile
+        restart: always
+        command: php artisan queue:listen --queue='emails,default' --sleep=5 --tries=1
+        environment:
+            <<: *freescout-env
+        volumes:
+            - ./freescout:/app
+
+    freescout-crontab:
+        image: willfarrell/crontab:1.0.0
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./freescout/docker/common/cron/config.json:/opt/crontab/config.json:rw
+
+    freescout-postgres:
+        image: postgres:13.1-alpine
+        environment:
+            POSTGRES_USER: freescout
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: freescout
+        volumes:
+            - freescout-postgres:/var/lib/postgresql/data
+        ports:
+            - "54321:5432"
+
+    redis:
+        image: 'redis:alpine'
+        ports:
+          - "6379"
+        volumes:
+          - 'redis:/data'
+        healthcheck:
+          test: [ "CMD", "redis-cli", "ping" ]
+          retries: 3
+          timeout: 5s
+
+    minio:
+        image: 'minio/minio:latest'
+        ports:
+            - '9000:9000'
+            - '8900:8900'
+        environment:
+            MINIO_ROOT_USER: 'app'
+            MINIO_ROOT_PASSWORD: 'password'
+        volumes:
+            - 'minio:/data/minio'
+        command: minio server /data/minio --console-address ":8900"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            retries: 3
+            timeout: 5s
+
+    mailhog:
+        image: 'mailhog/mailhog:latest'
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+
+volumes:
+    redis:
+    freescout-postgres:
+    minio:

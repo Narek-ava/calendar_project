@@ -1,0 +1,426 @@
+version: "3.7"
+services:
+    traefik:
+        image: traefik:2.4
+        command:
+            --providers.docker=true
+            --providers.docker.watch=true
+            --providers.docker.swarmMode=true
+            --providers.docker.exposedByDefault=false
+            --entryPoints.http.address=:80
+            --entryPoints.https.address=:443
+            --entryPoints.wss.address=:6001
+            --entryPoints.mailhog.address=:8025
+            --certificatesresolvers.letsEncrypt.acme.dnsChallenge=true
+            --certificatesresolvers.letsEncrypt.acme.dnsChallenge.provider=digitalocean
+            --certificatesresolvers.letsEncrypt.acme.email=inbox@chilledbutter.com
+            --certificatesresolvers.letsEncrypt.acme.storage=/certificates/acme.json
+        ports:
+            - target: 80
+              published: 80
+              protocol: tcp
+              mode: host
+            - target: 443
+              published: 443
+              protocol: tcp
+              mode: host
+            - target: 6001
+              published: 6001
+              protocol: tcp
+              mode: host
+            - target: 8025
+              published: 8025
+              protocol: tcp
+              mode: host
+        environment:
+            DO_AUTH_TOKEN: ${DO_AUTH_TOKEN}
+        networks:
+            - traefik-public
+            - default
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - traefik-public-certs:/certificates
+        deploy:
+            labels:
+                - traefik.enable=true
+                - traefik.docker.network=traefik-public
+
+                - traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)
+                - traefik.http.routers.http-catchall.entryPoints=http
+                - traefik.http.routers.http-catchall.middlewares=redirect-to-https
+                - traefik.http.services.http-catchall.loadBalancer.server.port=80
+
+                - traefik.http.middlewares.redirect-to-https.redirectScheme.scheme=https
+                - traefik.http.middlewares.redirect-to-https.redirectScheme.permanent=true
+
+                - traefik.http.middlewares.secure-headers.headers.sslRedirect=true
+                - traefik.http.middlewares.secure-headers.headers.stsSeconds=31536000
+                - traefik.http.middlewares.secure-headers.headers.contentSecurityPolicy=block-all-mixed-content
+            placement:
+                constraints: [ node.role == manager ]
+
+#    cron:
+#        image: crazymax/swarm-cronjob:latest
+#        volumes:
+#            - /var/run/docker.sock:/var/run/docker.sock
+#        environment:
+#            LOG_LEVEL: info
+#        deploy:
+#            placement:
+#                constraints: [ node.role == manager ]
+
+    websocket:
+        image: 'quay.io/soketi/soketi:latest-16-alpine'
+        networks:
+            - traefik-public
+            - default
+        deploy:
+            labels:
+                - traefik.enable=true
+                - traefik.docker.network=traefik-public
+                - traefik.http.routers.websocket.rule=Host(`ws.staging.chilledbutter.com`)
+                - traefik.http.services.websocket.loadBalancer.server.port=6001
+                - traefik.http.routers.websocket.entryPoints=wss
+                - traefik.http.routers.websocket.tls=true
+                - traefik.http.routers.websocket.tls.certResolver=letsEncrypt
+            placement:
+                constraints: [ node.role == manager ]
+
+    mailhog:
+        image: 'mailhog/mailhog:latest'
+        networks:
+            - traefik-public
+            - default
+        environment:
+            MH_OUTGOING_SMTP: /config/smtp.json
+        volumes:
+            - ./smtp.json:/config/smtp.json
+        deploy:
+            labels:
+                - traefik.enable=true
+                - traefik.docker.network=traefik-public
+                - traefik.http.routers.mailhog.rule=Host(`mailhog.staging.chilledbutter.com`)
+                - traefik.http.routers.mailhog.entrypoints=mailhog
+                - traefik.http.routers.mailhog.tls=true
+                - traefik.http.routers.mailhog.tls.certResolver=letsEncrypt
+                - traefik.http.services.mailhog.loadbalancer.server.port=8025
+            placement:
+                constraints: [ node.role == manager ]
+
+    frontend:
+        image: ${REGISTRY}/frontend:${IMAGE_TAG}
+        restart: always
+        networks:
+            - traefik-public
+            - default
+        deploy:
+            labels:
+                - traefik.enable=true
+                - traefik.docker.network=traefik-public
+                - traefik.http.routers.frontend.rule=Host(`staging.chilledbutter.com`) || (Host(`staging.cbtr.me`) && PathPrefix(`/s`))
+                - traefik.http.services.frontend.loadBalancer.server.port=80
+                - traefik.http.middlewares.frontend-redirect.redirectRegex.permanent=true
+                - traefik.http.routers.frontend.middlewares=frontend-redirect,secure-headers
+                - traefik.http.routers.frontend.entryPoints=https
+                - traefik.http.routers.frontend.tls=true
+                - traefik.http.routers.frontend.tls.certResolver=letsEncrypt
+            mode: replicated
+            replicas: 2
+            update_config:
+                parallelism: 1
+                delay: 10s
+
+    api:
+        image: ${REGISTRY}/api:${IMAGE_TAG}
+        networks:
+            - traefik-public
+            - default
+        deploy:
+            labels:
+                - traefik.enable=true
+                - traefik.docker.network=traefik-public
+                - traefik.http.routers.api.rule=Host(`api.staging.chilledbutter.com`)
+                - traefik.http.services.api.loadBalancer.server.port=80
+                - traefik.http.routers.api.middlewares=secure-headers
+                - traefik.http.routers.api.entryPoints=https
+                - traefik.http.routers.api.tls=true
+                - traefik.http.routers.api.tls.certResolver=letsEncrypt
+            mode: replicated
+            replicas: 2
+            update_config:
+                parallelism: 1
+                delay: 10s
+
+    freescout:
+        image: ${REGISTRY}/freescout:${IMAGE_TAG}
+        networks:
+            - traefik-public
+            - default
+        restart: always
+        depends_on:
+            - freescout-php-fpm
+        deploy:
+            labels:
+                - traefik.enable=true
+                - traefik.docker.network=traefik-public
+                - traefik.http.routers.freescout.rule=Host(`inbox.staging.chilledbutter.com`)
+                - traefik.http.services.freescout.loadBalancer.server.port=80
+                - traefik.http.routers.freescout.middlewares=secure-headers
+                - traefik.http.routers.freescout.entryPoints=https
+                - traefik.http.routers.freescout.tls=true
+                - traefik.http.routers.freescout.tls.certResolver=letsEncrypt
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+        volumes:
+            - 'freescout-css-builds:/app/public/css/builds'
+            - 'freescout-js-builds:/app/public/js/builds'
+            - 'freescout-modules:/app/public/modules'
+
+    api-php-fpm:
+        image: ${REGISTRY}/api-php-fpm:${IMAGE_TAG}
+        restart: always
+        environment: &api-env
+            APP_NAME: Chilled Butter App
+            APP_ENV: staging
+            APP_KEY: base64:K3ioEHm0vVGebgA72cAhtfyncROd56YP3Rv33LjKaYc=
+            APP_DEBUG: 1
+            APP_URL: https://api.staging.chilledbutter.com
+            APP_FRONTEND_URL: https://staging.chilledbutter.com
+            APP_FRONTEND_SHORT_URL: https://staging.cbtr.me
+            SANCTUM_STATEFUL_DOMAINS: api.staging.chilledbutter.com,staging.chilledbutter.com
+            SESSION_DOMAIN: .staging.chilledbutter.com
+            LOG_CHANNEL: stack
+            LOG_LEVEL: debug
+            DB_CONNECTION: pgsql
+            DB_HOST: ${API_DB_HOST}
+            DB_PORT: ${API_DB_PORT}
+            DB_DATABASE: ${API_DB_DATABASE}
+            DB_USERNAME: ${API_DB_USERNAME}
+            DB_PASSWORD: ${API_DB_PASSWORD}
+            FILESYSTEM_DISK: s3
+            AWS_ACCESS_KEY_ID: ${API_AWS_ACCESS_KEY_ID}
+            AWS_SECRET_ACCESS_KEY: ${API_AWS_SECRET_ACCESS_KEY}
+            AWS_DEFAULT_REGION: us-east-1
+            AWS_BUCKET: ${API_AWS_BUCKET}
+            AWS_ENDPOINT: ${API_AWS_ENDPOINT}
+            AWS_USE_PATH_STYLE_ENDPOINT: "true"
+            TWILIO_AUTH_TOKEN: ${API_TWILIO_AUTH_TOKEN}
+            TWILIO_ACCOUNT_SID: ${API_TWILIO_ACCOUNT_SID}
+            TWILIO_API_KEY: ${API_TWILIO_API_KEY}
+            TWILIO_API_SECRET: ${API_TWILIO_API_SECRET}
+            TWILIO_FROM: ${API_TWILIO_FROM}
+            BROADCAST_DRIVER: pusher
+            PUSHER_APP_KEY: app-key
+            PUSHER_APP_ID: app-id
+            PUSHER_APP_SECRET: app-secret
+            PUSHER_HOST: websocket
+            PUSHER_PORT: 6001
+            REDIS_HOST: redis
+            SESSION_DRIVER: redis
+            CACHE_DRIVER: redis
+            QUEUE_CONNECTION: redis
+            MAIL_MAILER: smtp
+            MAIL_HOST: mailhog
+            MAIL_PORT: 1025
+            MAIL_USERNAME: null
+            MAIL_PASSWORD: null
+            MAIL_ENCRYPTION: "false"
+            MAIL_FROM_NAME: Chilled Butter App
+            MAIL_FROM_ADDRESS: ${API_MAIL_FROM_ADDRESS}
+            MAILGUN_DOMAIN: ${API_MAIL_MAILGUN_DOMAIN}
+            MAILGUN_SECRET: ${API_MAIL_MAILGUN_SECRET}
+            SENTRY_LARAVEL_DSN: ${API_SENTRY_LARAVEL_DSN}
+            PAYPAL_MODE: sandbox
+            STRIPE_KEY: ${API_STRIPE_KEY}
+            STRIPE_SECRET: ${API_STRIPE_SECRET}
+            STRIPE_WEBHOOK_SECRET: ${API_STRIPE_WEBHOOK_SECRET}
+            AUTHNET_API_LOGIN_ID: ${API_AUTHNET_API_LOGIN_ID}
+            AUTHNET_TRANSACTION_KEY: ${API_AUTHNET_TRANSACTION_KEY}
+            GOOGLE_CLIENT_ID: ${API_GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${API_GOOGLE_CLIENT_SECRET}
+            GOOGLE_REDIRECT_URI: https://api.staging.chilledbutter.com/google/oauth
+            GOOGLE_WEBHOOK_URI: https://api.staging.chilledbutter.com/google/webhook
+            INBOX_TO_CB_API_KEY: ${INBOX_TO_CB_API_KEY}
+        cap_add:
+            - ALL
+        privileged: true
+        deploy:
+            mode: replicated
+            replicas: 2
+            update_config:
+                parallelism: 1
+                delay: 10s
+
+    api-php-schedule:
+        image: ${REGISTRY}/api-php-cli:${IMAGE_TAG}
+        command: php artisan schedule:work
+        environment:
+            <<: *api-env
+        networks:
+            - default
+        depends_on:
+            - redis
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 5s
+
+    api-php-queue:
+        image: ${REGISTRY}/api-php-cli:${IMAGE_TAG}
+        command: php artisan queue:work
+        environment:
+            <<: *api-env
+        networks:
+            - default
+        depends_on:
+            - redis
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 5s
+
+    api-migration:
+        image: ${REGISTRY}/api-php-cli:${IMAGE_TAG}
+        command: php artisan migrate --no-interaction --force
+        environment:
+            <<: *api-env
+        networks:
+            - default
+        deploy:
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 5
+                window: 120s
+
+    freescout-php-fpm:
+        image: ${REGISTRY}/freescout-php-fpm:${IMAGE_TAG}
+        restart: always
+        environment: &freescout-env
+            APP_URL: https://inbox.staging.chilledbutter.com
+            APP_KEY: base64:pEhdK9HMJmJgEo+VXJyBzw9TWogW7aQP/2CSuyV/+s8=
+            DB_CONNECTION: pgsql
+            DB_HOST: ${FREESCOUT_DB_HOST}
+            DB_PORT: ${FREESCOUT_DB_PORT}
+            DB_DATABASE: ${FREESCOUT_DB_DATABASE}
+            DB_USERNAME: ${FREESCOUT_DB_USERNAME}
+            DB_PASSWORD: ${FREESCOUT_DB_PASSWORD}
+            APIWEBHOOKS_CORS_HOSTS: "*"
+            APP_FETCH_SCHEDULE: 1
+            SENTRY_LARAVEL_DSN: ${FREESCOUT_SENTRY_LARAVEL_DSN}
+            APP_DISABLE_UPDATING: 1
+            APP_ENV: staging
+            APP_FORCE_HTTPS: "true"
+            REDIS_HOST: redis
+            SESSION_DRIVER: redis
+            QUEUE_DRIVER: redis
+            CACHE_DRIVER: redis
+            MAIL_DRIVER: ${API_MAIL_MAILER}
+            MAIL_FROM_NAME: Chilled Butter App
+            MAIL_FROM_ADDRESS: ${API_MAIL_FROM_ADDRESS}
+            MAILGUN_DOMAIN: ${API_MAIL_MAILGUN_DOMAIN}
+            MAILGUN_SECRET: ${API_MAIL_MAILGUN_SECRET}
+            MAILGUN_SIGNING_KEY: ${API_MAIL_MAILGUN_SIGNING_KEY}
+            MAILGUN_API_KEY: ${API_MAIL_MAILGUN_API_KEY}
+            AWS_ACCESS_KEY_ID: ${API_AWS_ACCESS_KEY_ID}
+            AWS_SECRET_ACCESS_KEY: ${API_AWS_SECRET_ACCESS_KEY}
+            AWS_DEFAULT_REGION: us-east-1
+            AWS_BUCKET: ${API_AWS_BUCKET}
+            AWS_ENDPOINT: ${API_AWS_ENDPOINT}
+            AWS_USE_PATH_STYLE_ENDPOINT: "true"
+            INBOX_TO_CB_API_KEY: ${INBOX_TO_CB_API_KEY}
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+        volumes:
+            - 'freescout-css-builds:/app/public/css/builds'
+            - 'freescout-js-builds:/app/public/js/builds'
+            - 'freescout-modules:/app/public/modules'
+
+    freescout-migration:
+        image: ${REGISTRY}/freescout-php-cli:${IMAGE_TAG}
+        command: php artisan migrate --no-interaction --force
+        environment:
+            <<: *freescout-env
+        deploy:
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 5
+                window: 120s
+
+    freescout-schedule:
+        image: ${REGISTRY}/freescout-php-cli:${IMAGE_TAG}
+        command: php artisan schedule:run
+        environment:
+            <<: *freescout-env
+        networks:
+            - default
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 5s
+    
+    freescout-queue:
+        image: ${REGISTRY}/freescout-php-cli:${IMAGE_TAG}
+        command: php artisan queue:work --queue='emails,default' --sleep=5 --tries=1
+        environment:
+            <<: *freescout-env
+        networks:
+            - default
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 5s
+
+    redis:
+        image: 'redis:alpine'
+        ports:
+            - "6379"
+        volumes:
+            - 'redis:/data'
+        networks:
+            - default
+        healthcheck:
+            test: [ "CMD", "redis-cli", "ping" ]
+            retries: 3
+            timeout: 5s
+        deploy:
+            placement:
+                constraints: [ node.role == manager ]
+                
+    tva:
+        image: ${REGISTRY}/tva:${IMAGE_TAG}
+        restart: always
+        networks:
+            - default
+        deploy:
+            mode: replicated
+            replicas: 2
+            update_config:
+                parallelism: 1
+                delay: 10s
+
+volumes:
+    freescout-css-builds:
+    freescout-js-builds:
+    freescout-modules:
+    redis:
+    traefik-public-certs:
+
+networks:
+    traefik-public:
