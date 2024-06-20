@@ -1,0 +1,8 @@
+[
+    {
+        "comment": "Scheduler",
+        "schedule": "* * * * *",
+        "command": "php artisan schedule:run",
+        "container": "calendar-project-freescout-php-fpm-1"
+    }
+]

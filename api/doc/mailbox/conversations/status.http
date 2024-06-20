@@ -1,0 +1,29 @@
+POST /mailboxes/1/conversations/1/status HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": 6,
+    "snoozed_at": "2021-12-28T12:45:04.758Z"
+}
+
+###
+
+POST /mailboxes/1/conversations/status/bulk HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "5": {
+        "status": 6,
+        "snoozed_at": "2021-12-28T12:45:04.758Z"
+    },
+    "6": {
+        "status": 6,
+        "snoozed_at": "2021-12-28T12:45:04.758Z"
+    }
+}

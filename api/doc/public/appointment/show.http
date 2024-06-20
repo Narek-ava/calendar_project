@@ -1,0 +1,4 @@
+GET /public/company/balistreri-kshlerin/appointment/ccbd232f-1a78-49c9-b683-b256747045b6 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Content-Type: application/json

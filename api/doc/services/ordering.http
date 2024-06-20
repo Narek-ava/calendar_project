@@ -1,0 +1,22 @@
+PUT /services/updateSortingOrders HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "ordering": [
+        {
+            "id": 28,
+            "sorting_order": 111
+        },
+        {
+            "id": 29,
+            "sorting_order": 222
+        },
+        {
+            "id": 30,
+            "sorting_order": 333
+        }
+    ]
+}

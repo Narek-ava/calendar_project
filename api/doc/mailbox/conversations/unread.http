@@ -1,0 +1,15 @@
+POST /mailboxes/1/conversations/1/unread HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+
+POST /mailboxes/1/conversations/status/bulk HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+[1,2,3,4]

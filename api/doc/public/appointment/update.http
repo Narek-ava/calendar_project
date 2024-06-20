@@ -1,0 +1,12 @@
+PUT /public/company/128a656a-e75e-4f7d-bcfe-fd3e4471123f/appointment/1fdfc485-2e79-4590-88c2-6ffb01c1aeca HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Content-Type: application/json
+
+{
+    "employee_id": 1,
+    "location_id": 1,
+    "service_id": 1,
+    "start_at": "2022-01-26 09:00:00",
+    "end_at": "2022-01-26 09:44:59"
+}

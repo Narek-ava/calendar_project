@@ -1,0 +1,12 @@
+POST https://calendar.beetsoft.com/uploader/image HTTP/1.1
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=image
+Authorization: Basic admin QdH8uhKZ
+
+
+--image
+Content-Disposition: form-data; name="image"; filename="my_portrait.jpg"
+
+< /Users/evolton/Pictures/my_portrait.jpg
+--image

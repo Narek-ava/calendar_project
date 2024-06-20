@@ -1,0 +1,11 @@
+gitlab_runner_coordinator_url: https://gitlab.com
+gitlab_runner_registration_token: 'uopDZzrQkQGKgzzAVRr5'
+gitlab_runner_runners:
+  - name: 'Docker GitLab Runner'
+    executor: docker
+    docker_image: 'alpine'
+    tags:
+      - calendar
+    docker_volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/cache"

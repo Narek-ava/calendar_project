@@ -1,0 +1,11 @@
+---
+-   name: Provisioning project
+    hosts: project
+    remote_user: root
+    roles:
+        - swap
+        - docker
+        - certbot
+        - project
+
+

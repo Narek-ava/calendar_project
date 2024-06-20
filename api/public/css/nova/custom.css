@@ -1,0 +1,7 @@
+/*
+    By some reason Nova thinks the input type color is always disabled
+    This is the fix
+*/
+input[type="color"].form-input {
+    cursor: pointer;
+}

@@ -1,0 +1,24 @@
+{
+    "name": "TwilioSms Integration",
+    "alias": "twiliosmsintegration",
+    "description": "Convert messages sent to your Twilio number into Inbox conversations!",
+    "version": "0.0.1",
+    "detailsUrl": "",
+    "author": "ChilledButter",
+    "authorUrl": "",
+    "requiredAppVersion": "1.8.19",
+    "license": "AGPL-3.0",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\TwilioSmsIntegration\\Providers\\TwilioSmsIntegrationServiceProvider"
+    ],
+    "aliases": {
+        "TwilioSmsIntegration": "Modules\\TwilioSmsIntegration\\Providers\\TwilioSmsIntegrationServiceProvider"
+    },
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

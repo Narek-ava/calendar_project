@@ -1,0 +1,42 @@
+PUT /mailboxes/1 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Beetsoft",
+    "email": "aborisov@beetsoft.com",
+    "auto_bcc": "some text",
+    "from_name": 1,
+    "ticket_status": 1,
+    "template": 1,
+    "ticket_assignee": 2,
+    "out_method": 3,
+    "users": {
+        "11": {"access": ["edit","perm","auto","sig"]}
+    },
+    "out_server": "smtp.mailgun.org",
+    "out_port": 465,
+    "users": {
+        "2": {"access": ["edit","perm","auto","sig"]},
+        "3": {"access": ["edit","perm","auto","sig"]},
+        "4": {"access": ["edit","perm","auto","sig"]},
+        "5": {"access": ["edit","perm","auto","sig"]},
+        "6": {"access": ["edit","perm","auto","sig"]},
+        "7": {"access": ["edit","perm","auto","sig"]},
+        "8": {"access": ["edit","perm","auto","sig"]},
+        "9": {"access": ["edit","perm","auto","sig"]},
+        "10": {"access": ["edit","perm","auto","sig"]}
+    },
+    "out_username": "postmaster@calendar.beetsoft.com",
+    "out_password": "3f8cb40869f2f351fab99fc09797b52c-7005f37e-bb2fd24f",
+    "out_encryption": 2,
+    "in_server": "imap.gmail.com",
+    "in_port": 993,
+    "in_username": "aborisov@beetsoft.com",
+    "in_password": "kfebjfctwkpeelyv",
+    "in_protocol": 1,
+    "in_encryption": 2,
+    "in_validate_cert": true
+}

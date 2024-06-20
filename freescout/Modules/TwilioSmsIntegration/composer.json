@@ -1,0 +1,29 @@
+{
+    "name": "chilledbutter/twiliosmsintegration",
+    "description": "",
+    "authors": [
+        {
+            "name": "ChilledButter",
+            "email": "inbox@chilledbutter.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\TwilioSmsIntegration\\Providers\\TwilioSmsIntegrationServiceProvider"
+
+            ],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\TwilioSmsIntegration\\": ""
+        }
+    },
+    "require": {
+        "twilio/sdk": "^6.38"
+    }
+}

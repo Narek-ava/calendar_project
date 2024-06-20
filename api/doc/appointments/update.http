@@ -1,0 +1,30 @@
+PUT /appointments/2 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "service_id": 1,
+    "employee_id": 1,
+    "location_id": 1,
+    "customer_id": 3,
+    "start_at": "2022-08-02T17:00:00.000+00:00",
+    "end_at": "2022-08-02T18:23:59.000+00:00",
+    "type": "appointment",
+    "images": [],
+    "payments": [
+        {
+            "datetime": "2022-08-02T18:23:59.000+00:00",
+            "reason": "gratuity",
+            "amount": "0",
+            "method": "gift_card"
+        },
+        {
+            "datetime": "2022-08-02T18:23:59.000+00:00",
+            "reason": "gratuity",
+            "amount": "110",
+            "method": "gift_card"
+        }
+    ]
+}

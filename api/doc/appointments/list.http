@@ -1,0 +1,16 @@
+GET /appointments?filters[employee]=2 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+### mode = [month, week, day] default: month
+### date = new Date().toJson() default: now
+### filters[employee]=1,2,3&filters[service]=1,2,3&filters[location]=1,2,3&filters[customer]=1,2,3
+
+GET /appointments?mode=month&date=2022-01-17 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json

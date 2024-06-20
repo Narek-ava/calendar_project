@@ -1,0 +1,32 @@
+POST /services HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "service_category_id": 1,
+    "name": "Test service",
+    "duration": 40,
+    "interval": 10,
+    "payment_type": "prepay",
+    "price": "102.01",
+    "prepay": "22.02",
+    "employees": [
+        1,
+        2,
+        3
+    ],
+    "locations": [
+        1,
+        2,
+        3
+    ],
+    "fixed_price": false,
+    "self_book": true,
+    "self_book_days": 14,
+    "images": [
+        "images\/KlOQBXOihGwjNxBbUVn3tnAxfcjmJrHtIOr62hHb.jpg",
+        "images\/rOG5kdesjdyOVIjssV1N6K9HZDQgTsgeyz8o3KYO.jpg"
+    ]
+}

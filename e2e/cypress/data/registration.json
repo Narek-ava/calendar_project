@@ -1,0 +1,22 @@
+[
+  {
+    "singleUser": {
+      "firstName": "Alexander",
+      "lastName": "Rehorovsky",
+      "phone": "2034855543",
+      "email": "alexanderre@cbtr.com",
+      "organizationName": "Scalable Industries",
+      "password": "password",
+      "searchAddress": "new york avenue 1 street"
+    },
+    "organizationType": {
+      "firstName": "Oleg",
+      "lastName": "Russo",
+      "phone": "2034855543",
+      "email": "olegrusso@cbtr.com",
+      "organizationName": "Hollywood donkeys",
+      "password": "password",
+      "searchAddress": "new york avenue 1 street"
+    }
+  }
+]

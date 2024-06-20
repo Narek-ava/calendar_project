@@ -1,0 +1,16 @@
+PUT /appointments/1049/payments HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "payments": [
+        {
+            "datetime": "2022-08-02T18:23:59.000+00:00",
+            "reason": "gratuity",
+            "amount": "10",
+            "method": "gift_card"
+        }
+    ]
+}

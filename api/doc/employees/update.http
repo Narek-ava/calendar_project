@@ -1,0 +1,24 @@
+PUT /employees/13 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "role": "provider",
+    "profession_title": "some profession",
+    "locations": [1,2,3,4,5],
+    "services": [1,2,3,4,5],
+    "background_color": "000000",
+    "text_color": "ffffff",
+    "self_book": false,
+    "schedule": [
+        {"id":"1","label":"Monday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"},
+        {"id":"2","label":"Tuesday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"},
+        {"id":"3","label":"Wednesday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"},
+        {"id":"4","label":"Thursday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"},
+        {"id":"5","label":"Friday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"},
+        {"id":"6","label":"Saturday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"},
+        {"id":"0","label":"Sunday","enable":true,"start":"2022-01-26 09:00:00","end":"2022-01-26 18:00:00"}
+    ]
+}

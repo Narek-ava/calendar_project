@@ -1,0 +1,18 @@
+POST /companies HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Test",
+    "time_zone": "UTC",
+    "address": {
+        "address": "Kek",
+        "city": "kek",
+        "state": "kek",
+        "country": "kek",
+        "postal_code": "644000"
+    },
+    "logo": "images\/KlOQBXOihGwjNxBbUVn3tnAxfcjmJrHtIOr62hHb.jpg"
+}

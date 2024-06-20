@@ -1,0 +1,10 @@
+GET /public/company/gibson-kemmer/appointment/slots?date=2022-03-01&service=1&location=1&employee=1 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Content-Type: application/json
+
+###
+GET /public/company/gibson-kemmer/appointment/slots?date=2022-01-26&service=1&location=1 HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Content-Type: application/json

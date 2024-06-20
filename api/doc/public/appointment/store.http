@@ -1,0 +1,17 @@
+POST /public/company/gibson-kemmer/appointment HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Content-Type: application/json
+
+{
+    "customer": {
+        "firstname": "Leda",
+        "lastname": "Muller",
+        "email": "evolton@ya.ru",
+        "phone": "1-712-913-4882"
+    },
+    "location_id": 1,
+    "service_id": 1,
+    "start_at": "2022-01-26 09:00:00",
+    "end_at": "2022-01-26 09:44:59"
+}

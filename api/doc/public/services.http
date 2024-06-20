@@ -1,0 +1,4 @@
+GET /public/company/bashirian-okon HTTP/1.1
+Host: localhost:8081
+X-Requested-With: XMLHttpRequest
+Content-Type: application/json

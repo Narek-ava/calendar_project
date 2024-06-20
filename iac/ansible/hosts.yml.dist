@@ -1,0 +1,16 @@
+all:
+    children:
+        project:
+            hosts:
+                server:
+                    ansible_connection: ssh
+                    ansible_user:
+                    ansible_host:
+                    ansible_port:
+        runner:
+            hosts:
+                server:
+                    ansible_connection: ssh
+                    ansible_user:
+                    ansible_host:
+                    ansible_port:

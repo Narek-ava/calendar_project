@@ -1,0 +1,3 @@
+certbot_email: aborisov@beetsoft.com
+certbot_hosts:
+    - calendar.beetsoft.com

@@ -1,0 +1,11 @@
+{
+    "Mailgun via ${API_MAIL_MAILGUN_DOMAIN}": {
+        "name": "Mailgun via ${API_MAIL_MAILGUN_DOMAIN}",
+        "host": "smtp.mailgun.org",
+        "port": "587",
+        "email": "",
+        "username": "${API_MAILGUN_SMTP_USERNAME}",
+        "password": "${API_MAILGUN_SMTP_PASSWORD}",
+        "mechanism": "PLAIN"
+    }
+}
